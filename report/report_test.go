@@ -1,10 +1,12 @@
 package report
 
 import (
-	clockify_api "github.com/ForestsoftGmbH/clockify-api"
+	"bytes"
+	"encoding/json"
+	"github.com/ForestsoftGmbH/clockify-api/timeentries"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
-	"os"
 	"testing"
 )
 
@@ -38,13 +40,23 @@ func TestGetReport(t *testing.T) {
 			},
 		}
 
+		apiResponse := ReportResponse{
+			TimeEntries: []timeentries.TimeEntry{
+				{
+					Id:          "5f8b7b4b9e57ad0b4c8b4567",
+					Description: "Test",
+				},
+			},
+		}
+
 		api := NewReportApi()
-		api.Credentials = clockify_api.Credentials{WorkspaceId: os.Getenv("CLOCKIFY_WORKSPACE"), ApiKey: os.Getenv("CLOCKIFY_API_KEY")}
 		api.HttpClient = &MockClient{
 			DoFunc: func(req *http.Request) (*http.Response, error) {
+				jsonByte, _ := json.Marshal(apiResponse)
 				// do whatever you want
 				return &http.Response{
-					StatusCode: http.StatusBadRequest,
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(bytes.NewReader(jsonByte)),
 				}, nil
 			},
 		}
@@ -63,11 +75,19 @@ func TestGetReport(t *testing.T) {
 
 func TestSearchClient(t *testing.T) {
 	api := NewReportApi()
+	searchResponse := []SearchResult{
+		{
+			Id:   "644d02af2d46af108391309e",
+			Name: "Enbitcon GmbH",
+		},
+	}
+	searchResponseJson, _ := json.Marshal(searchResponse)
 	api.HttpClient = &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			// do whatever you want
 			return &http.Response{
-				StatusCode: http.StatusBadRequest,
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(bytes.NewReader(searchResponseJson)),
 			}, nil
 		},
 	}
