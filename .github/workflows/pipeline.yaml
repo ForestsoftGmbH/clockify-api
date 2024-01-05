@@ -6,6 +6,8 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
         with:
@@ -14,3 +16,32 @@ jobs:
         run: go build -v
       - name: Test
         run: go test -v ./...
+  release:
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+        with:
+         fetch-depth: 0
+      - name: Get next version
+        id: get_next_version
+        uses: thenativeweb/get-next-version@main
+        with:
+          prefix: 'v' # optional, defaults to ''
+      - name: Set up Git
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+
+      - name: Create Tag
+        if: steps.get_next_version.outputs.hasNextVersion == 'true'
+        run: |
+          # Choose an appropriate version number (e.g., from your build process)
+          version="${{ steps.get_next_version.outputs.version }}"
+          
+          # Create a lightweight tag
+          git tag $version
+          
+          # Push the tag to GitHub
+          git push origin $version
