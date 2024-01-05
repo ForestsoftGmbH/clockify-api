@@ -21,6 +21,17 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	return &http.Response{}, nil
 }
 
+func TestConvertTimeEntriesToInvoicedRequest(t *testing.T) {
+	t.Run("ConvertTimeEntriesToInvoicedRequest", func(t *testing.T) {
+		timeEntries := []TimeEntry{{Id: "65858d739e57ad1046b8bc36"}, {Id: "65858d739e57ad1046b8bc37"}}
+		request := ConvertTimeEntriesToInvoicedRequest(timeEntries)
+		assert.Equal(t, true, request.Invoiced)
+		assert.Equal(t, 2, len(request.TimeEntryIds))
+		assert.Equal(t, "65858d739e57ad1046b8bc36", request.TimeEntryIds[0])
+		assert.Equal(t, "65858d739e57ad1046b8bc37", request.TimeEntryIds[1])
+	})
+}
+
 func TestMarkInvoiced(t *testing.T) {
 	t.Run("Bad Request", func(t *testing.T) {
 		request := ConvertTimeEntriesToInvoicedRequest([]TimeEntry{{Id: "65858d739e57ad1046b8bc36"}})
